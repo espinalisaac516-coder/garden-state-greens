@@ -1,24 +1,63 @@
 import { useParams, Link } from "react-router-dom";
-import { dispensaries, products } from "@/lib/data";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { DbDispensary, DbProduct } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 import CategoryBar from "@/components/CategoryBar";
-import { useState } from "react";
-import { ArrowLeft, Star, Clock, MapPin } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Store } from "lucide-react";
 
 export default function DispensaryMenu() {
   const { id } = useParams();
-  const dispensary = dispensaries.find((d) => d.id === id);
+  const [dispensary, setDispensary] = useState<DbDispensary | null>(null);
+  const [products, setProducts] = useState<DbProduct[]>([]);
+  const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("All");
 
-  if (!dispensary) {
+  useEffect(() => {
+    async function load() {
+      const { data: disp } = await supabase
+        .from("dispensaries")
+        .select("*")
+        .eq("id", id!)
+        .maybeSingle();
+
+      if (disp) {
+        setDispensary(disp as DbDispensary);
+        const { data: prods } = await supabase
+          .from("products")
+          .select("*")
+          .eq("dispensary_id", disp.id)
+          .eq("is_available", true)
+          .order("created_at", { ascending: false });
+        setProducts((prods as DbProduct[]) || []);
+      }
+      setLoading(false);
+    }
+    load();
+  }, [id]);
+
+  if (loading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <p className="text-muted-foreground">Dispensary not found</p>
+        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  // For demo, show all products for any dispensary
+  if (!dispensary) {
+    return (
+      <div className="min-h-screen pt-24 flex items-center justify-center">
+        <div className="text-center">
+          <Store className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+          <p className="text-muted-foreground">Dispensary not found</p>
+          <Link to="/dispensaries" className="text-primary text-sm hover:underline mt-2 inline-block">
+            Browse all dispensaries
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const filtered = category === "All"
     ? products
     : products.filter((p) => p.category === category);
@@ -27,7 +66,11 @@ export default function DispensaryMenu() {
     <div className="min-h-screen pt-20 pb-16">
       {/* Header */}
       <div className="relative h-48 overflow-hidden">
-        <img src={dispensary.image} alt={dispensary.name} className="w-full h-full object-cover opacity-40" />
+        {dispensary.image_url ? (
+          <img src={dispensary.image_url} alt={dispensary.name} className="w-full h-full object-cover opacity-40" />
+        ) : (
+          <div className="w-full h-full bg-secondary" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
       </div>
 
@@ -41,23 +84,23 @@ export default function DispensaryMenu() {
           <div>
             <h1 className="font-display text-3xl md:text-4xl font-bold">{dispensary.name}</h1>
             <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-accent fill-accent" />
-                {dispensary.rating} ({dispensary.reviewCount})
-              </span>
-              <span className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                {dispensary.city}
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                {dispensary.deliveryTime}
-              </span>
+              {dispensary.city && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  {dispensary.city}
+                </span>
+              )}
+              {dispensary.delivery_time && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  {dispensary.delivery_time}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`h-2 w-2 rounded-full ${dispensary.isOpen ? "bg-primary animate-pulse" : "bg-destructive"}`} />
-            <span className="text-sm">{dispensary.isOpen ? "Open Now" : "Closed"}</span>
+            <div className={`h-2 w-2 rounded-full ${dispensary.is_open ? "bg-primary animate-pulse" : "bg-destructive"}`} />
+            <span className="text-sm">{dispensary.is_open ? "Open Now" : "Closed"}</span>
           </div>
         </div>
 
@@ -71,7 +114,7 @@ export default function DispensaryMenu() {
 
         {filtered.length === 0 && (
           <div className="text-center py-16 text-muted-foreground">
-            <p>No products in this category yet.</p>
+            <p>No products {category !== "All" ? "in this category " : ""}yet.</p>
           </div>
         )}
       </div>

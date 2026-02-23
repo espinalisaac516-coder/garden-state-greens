@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import HeroSection from "@/components/HeroSection";
 import DispensaryCard from "@/components/DispensaryCard";
-import { dispensaries } from "@/lib/data";
+import { DbDispensary } from "@/lib/types";
 import { motion } from "framer-motion";
 import { Truck, Shield, Clock } from "lucide-react";
 
@@ -11,6 +13,19 @@ const features = [
 ];
 
 export default function Index() {
+  const [dispensaries, setDispensaries] = useState<DbDispensary[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("dispensaries")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(4)
+      .then(({ data }) => {
+        setDispensaries((data as DbDispensary[]) || []);
+      });
+  }, []);
+
   return (
     <div className="min-h-screen">
       <HeroSection />
@@ -42,21 +57,23 @@ export default function Index() {
       </section>
 
       {/* Dispensaries */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="font-display text-3xl font-bold">Nearby Dispensaries</h2>
-              <p className="text-muted-foreground mt-1">Browse licensed dispensaries delivering to you</p>
+      {dispensaries.length > 0 && (
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="font-display text-3xl font-bold">Nearby Dispensaries</h2>
+                <p className="text-muted-foreground mt-1">Browse licensed dispensaries delivering to you</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {dispensaries.map((d, i) => (
+                <DispensaryCard key={d.id} dispensary={d} index={i} />
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {dispensaries.map((d, i) => (
-              <DispensaryCard key={d.id} dispensary={d} index={i} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

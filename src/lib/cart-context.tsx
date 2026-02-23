@@ -1,9 +1,9 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { CartItem, Product } from "./data";
+import { CartItem, DbProduct } from "./types";
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product) => void;
+  addItem: (product: DbProduct) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -19,7 +19,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  const addItem = (product: Product) => {
+  const addItem = (product: DbProduct) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
       if (existing) {
@@ -48,7 +48,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setItems([]);
 
-  const total = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const total = items.reduce((sum, i) => sum + Number(i.product.price) * i.quantity, 0);
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (

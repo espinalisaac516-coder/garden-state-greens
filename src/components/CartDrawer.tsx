@@ -32,11 +32,17 @@ export default function CartDrawer() {
                     exit={{ opacity: 0, x: -20 }}
                     className="glass-card p-3 flex gap-3"
                   >
-                    <img
-                      src={item.product.image}
-                      alt={item.product.name}
-                      className="h-16 w-16 rounded-lg object-cover"
-                    />
+                    {item.product.image_url ? (
+                      <img
+                        src={item.product.image_url}
+                        alt={item.product.name}
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                        <span className="text-muted-foreground text-xs">🌿</span>
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm truncate">{item.product.name}</h4>
                       <p className="text-xs text-muted-foreground">{item.product.weight}</p>

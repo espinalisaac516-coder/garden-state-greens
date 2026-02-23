@@ -1,10 +1,18 @@
-import { ShoppingBag, MapPin, Search } from "lucide-react";
+import { ShoppingBag, MapPin, Search, User, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 import { motion } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
   const { itemCount, setIsOpen } = useCart();
+  const { user, signOut } = useAuth();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
@@ -27,7 +35,7 @@ export default function Navbar() {
           />
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <MapPin className="h-4 w-4 text-primary" />
             <span className="hidden sm:inline">Newark, NJ</span>
@@ -48,6 +56,32 @@ export default function Navbar() {
               </motion.span>
             )}
           </button>
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex h-10 w-10 items-center justify-center rounded-full btn-gradient text-primary-foreground">
+                  <User className="h-5 w-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-card border-border/60">
+                <div className="px-3 py-2 border-b border-border/40">
+                  <p className="text-sm font-medium truncate">{user.email}</p>
+                </div>
+                <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              to="/auth"
+              className="px-4 py-2 rounded-lg btn-gradient text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </div>
     </nav>

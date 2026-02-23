@@ -1,4 +1,4 @@
-import { ShoppingBag, MapPin, Search, User, LogOut } from "lucide-react";
+import { ShoppingBag, MapPin, Search, User, LogOut, LayoutDashboard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
@@ -68,6 +68,12 @@ export default function Navbar() {
                 <div className="px-3 py-2 border-b border-border/40">
                   <p className="text-sm font-medium truncate">{user.email}</p>
                 </div>
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to="/dashboard">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:text-destructive">
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out

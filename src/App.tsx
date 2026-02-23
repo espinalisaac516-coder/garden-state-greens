@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Dispensaries from "./pages/Dispensaries";
 import DispensaryMenu from "./pages/DispensaryMenu";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/dispensaries" element={<Dispensaries />} />
               <Route path="/dispensary/:id" element={<DispensaryMenu />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

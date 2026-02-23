@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      dispensaries: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          delivery_fee: number | null
+          delivery_time: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_open: boolean | null
+          name: string
+          owner_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          delivery_fee?: number | null
+          delivery_time?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_open?: boolean | null
+          name: string
+          owner_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          delivery_fee?: number | null
+          delivery_time?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_open?: boolean | null
+          name?: string
+          owner_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          dispensary_id: string
+          id: string
+          image_url: string | null
+          is_available: boolean | null
+          name: string
+          price: number
+          strain: Database["public"]["Enums"]["strain_type"]
+          thc: string | null
+          updated_at: string
+          weight: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          dispensary_id: string
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name: string
+          price: number
+          strain?: Database["public"]["Enums"]["strain_type"]
+          thc?: string | null
+          updated_at?: string
+          weight?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          dispensary_id?: string
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name?: string
+          price?: number
+          strain?: Database["public"]["Enums"]["strain_type"]
+          thc?: string | null
+          updated_at?: string
+          weight?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_dispensary_id_fkey"
+            columns: ["dispensary_id"]
+            isOneToOne: false
+            referencedRelation: "dispensaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -77,6 +181,7 @@ export type Database = {
     }
     Enums: {
       app_role: "customer" | "dispensary_owner"
+      strain_type: "Sativa" | "Indica" | "Hybrid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -205,6 +310,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["customer", "dispensary_owner"],
+      strain_type: ["Sativa", "Indica", "Hybrid"],
     },
   },
 } as const

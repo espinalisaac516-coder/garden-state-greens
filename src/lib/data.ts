@@ -38,9 +38,9 @@ export interface CartItem {
 export const dispensaries: Dispensary[] = [
   {
     id: "1",
-    name: "Garden State Greens",
+    name: "Queen City",
     address: "420 Main St",
-    city: "Newark, NJ",
+    city: "Plainfield, NJ",
     rating: 4.8,
     reviewCount: 342,
     deliveryTime: "25-35 min",

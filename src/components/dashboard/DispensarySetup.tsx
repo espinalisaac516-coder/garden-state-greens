@@ -62,7 +62,7 @@ export default function DispensarySetup({ onCreated }: { onCreated: () => void }
                 required
                 maxLength={100}
                 className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border/60 text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/50 transition"
-                placeholder="Garden State Greens"
+                placeholder="Queen City"
               />
             </div>
             <div>

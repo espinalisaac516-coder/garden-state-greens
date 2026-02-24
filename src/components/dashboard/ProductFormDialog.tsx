@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Upload, X, Image as ImageIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +43,11 @@ export default function ProductFormDialog({ open, onOpenChange, dispensaryId, pr
   const [weight, setWeight] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (product) {
@@ -54,6 +59,8 @@ export default function ProductFormDialog({ open, onOpenChange, dispensaryId, pr
       setWeight(product.weight || "");
       setDescription(product.description || "");
       setImageUrl(product.image_url || "");
+      setImagePreview(product.image_url || null);
+      setImageFile(null);
     } else {
       setName("");
       setCategory("Flower");
@@ -63,12 +70,57 @@ export default function ProductFormDialog({ open, onOpenChange, dispensaryId, pr
       setWeight("");
       setDescription("");
       setImageUrl("");
+      setImagePreview(null);
+      setImageFile(null);
     }
   }, [product, open]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageUrl("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return imageUrl.trim() || null;
+    setUploading(true);
+    const ext = imageFile.name.split(".").pop();
+    const path = `${dispensaryId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, imageFile);
+    setUploading(false);
+    if (error) {
+      toast.error("Image upload failed: " + error.message);
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+    return urlData.publicUrl;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+
+    const uploadedUrl = await uploadImage();
+    if (imageFile && !uploadedUrl) {
+      setSaving(false);
+      return;
+    }
 
     const data = {
       dispensary_id: dispensaryId,
@@ -79,7 +131,7 @@ export default function ProductFormDialog({ open, onOpenChange, dispensaryId, pr
       price: parseFloat(price),
       weight: weight.trim() || null,
       description: description.trim() || null,
-      image_url: imageUrl.trim() || null,
+      image_url: uploadedUrl,
     };
 
     let error;
@@ -202,15 +254,35 @@ export default function ProductFormDialog({ open, onOpenChange, dispensaryId, pr
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">Image URL</label>
+            <label className="block text-sm font-medium mb-1.5">Product Image</label>
             <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              maxLength={500}
-              className={inputClass}
-              placeholder="https://..."
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
             />
+            {imagePreview ? (
+              <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border/60">
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 p-1 rounded-full bg-background/80 hover:bg-background text-foreground transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className={`${inputClass} flex items-center justify-center gap-2 h-24 cursor-pointer hover:border-primary/50`}
+              >
+                <Upload className="h-5 w-5 text-muted-foreground" />
+                <span className="text-muted-foreground text-sm">Click to upload image</span>
+              </button>
+            )}
           </div>
 
           <div className="flex gap-3 pt-2">
@@ -223,10 +295,10 @@ export default function ProductFormDialog({ open, onOpenChange, dispensaryId, pr
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploading}
               className="flex-1 py-2.5 rounded-lg btn-gradient text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {saving ? "Saving..." : product ? "Update" : "Add Product"}
+              {uploading ? "Uploading..." : saving ? "Saving..." : product ? "Update" : "Add Product"}
             </button>
           </div>
         </form>

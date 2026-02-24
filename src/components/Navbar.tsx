@@ -38,7 +38,7 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <MapPin className="h-4 w-4 text-primary" />
-            <span className="hidden sm:inline">Newark, NJ</span>
+            <span className="hidden sm:inline">Plainfield, NJ</span>
           </button>
 
           <button
